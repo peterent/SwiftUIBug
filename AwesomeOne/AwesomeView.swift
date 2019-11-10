@@ -50,8 +50,6 @@ struct AwesomeView: View {
     @ObservedObject var editableRecord = EditableRecord()
     
     @State var newCategory: String = ""
-    @State var pickerIndex = 0
-    @State var pickerId = 0
     
     var body: some View {
         Form {
@@ -68,38 +66,17 @@ struct AwesomeView: View {
                     }
                 }
             }
+            
             Section(header: Text("Category")) {
                 Text(self.editableRecord.category ?? "None")
             }
+            
             Section(header: Text("Picker Problems")) {
-                TextField("home, etc", text: self.$newCategory, onEditingChanged: { (success) in
-                    // ignore for now
-                }) {
-                    self.editableRecord.category = self.newCategory
-                    self.viewModel.addCategory(self.newCategory)
-                    self.pickerId = self.pickerId + 1 // update the ID so picker refreshes (hack)
-                    self.newCategory = ""
-                }
-                Picker(
-                    selection: self.$pickerIndex, // using self.$viewModel.categoryIndex does not work
-                    label: Text("Colors")
-                ) {
-                    ForEach(0..<self.viewModel.categories.count) { index in
-                        Text(self.viewModel.categories[index].label).tag(index) // .tag is necessary
-                    }
-                }
-                .pickerStyle(WheelPickerStyle())
-                .labelsHidden()
-                .id(self.pickerId) // use a unique var so Picker is refreshed when ID changes (hack)
-                Text("Selected: \(self.viewModel.categories[self.pickerIndex].label)")
-            }
-            // Ideally, simply scrolling the Picker's wheel would
-            // set the value in the editableRecord - still cannot
-            // figure out how to make that happen.
-            Section(header: Text("Save")) {
-                Button("Save") {
-                    self.editableRecord.category = self.viewModel.selectedCategory(self.pickerIndex)
-                }
+                CategoryView(
+                    viewModel: self.viewModel,
+                    editableRecord: self.editableRecord,
+                    onApply: { newCategory in self.editableRecord.category = newCategory.label},
+                    onCancel: { print("Cancel happened")} )
             }
         }
     }
